@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smart_habit_tracker/features/habit_tracker/data/models/habit_model.dart';
+import 'package:smart_habit_tracker/features/habit_tracker/presentation/providers/habit_provider.dart';
+import 'package:uuid/uuid.dart';
 
-class AddEditHabitScreen extends StatefulWidget {
+class AddEditHabitScreen extends ConsumerStatefulWidget {
   const AddEditHabitScreen({super.key});
 
   @override
-  State<AddEditHabitScreen> createState() => _AddEditHabitScreenState();
+  ConsumerState<AddEditHabitScreen> createState() => _AddEditHabitScreenState();
 }
 
-class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
+class _AddEditHabitScreenState extends ConsumerState<AddEditHabitScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
@@ -59,7 +63,13 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
               FilledButton.icon(
                 onPressed: () {
                   if (_formKey.currentState?.validate() ?? false) {
-                    // TODO: Save logic
+                    final newHabit = HabitModel(
+                      id: const Uuid().v4(),
+                      name: _nameController.text.trim(),
+                      description: _descController.text.trim(),
+                      recurrence: _selectedRecurrence,
+                    );
+                    ref.read(habitListProvider.notifier).addHabit(newHabit);
                     Navigator.pop(context);
                   }
                 },
