@@ -27,4 +27,6 @@ class HabitNotifier extends StateNotifier<List<HabitModel>> {
     box.delete(id);
     state = box.values.toList();
   }
+
+  void refresh() => state = box.values.toList();
 }

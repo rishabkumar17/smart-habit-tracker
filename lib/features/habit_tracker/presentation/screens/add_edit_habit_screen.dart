@@ -5,7 +5,9 @@ import 'package:smart_habit_tracker/features/habit_tracker/presentation/provider
 import 'package:uuid/uuid.dart';
 
 class AddEditHabitScreen extends ConsumerStatefulWidget {
-  const AddEditHabitScreen({super.key});
+  final HabitModel? habit;
+
+  const AddEditHabitScreen({super.key, this.habit});
 
   @override
   ConsumerState<AddEditHabitScreen> createState() => _AddEditHabitScreenState();
@@ -16,6 +18,20 @@ class _AddEditHabitScreenState extends ConsumerState<AddEditHabitScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
   String _selectedRecurrence = 'Daily';
+
+  HabitModel? _editingHabit;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final editingHabit = widget.habit;
+    if (editingHabit != null && _nameController.text.isEmpty) {
+      _nameController.text = editingHabit.name;
+      _descController.text = editingHabit.description;
+      _selectedRecurrence = editingHabit.recurrence;
+      _editingHabit = editingHabit;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,13 +79,22 @@ class _AddEditHabitScreenState extends ConsumerState<AddEditHabitScreen> {
               FilledButton.icon(
                 onPressed: () {
                   if (_formKey.currentState?.validate() ?? false) {
-                    final newHabit = HabitModel(
-                      id: const Uuid().v4(),
-                      name: _nameController.text.trim(),
-                      description: _descController.text.trim(),
-                      recurrence: _selectedRecurrence,
-                    );
-                    ref.read(habitListProvider.notifier).addHabit(newHabit);
+                    if (_editingHabit != null) {
+                      final updated = _editingHabit!
+                        ..name = _nameController.text.trim()
+                        ..description = _descController.text.trim()
+                        ..recurrence = _selectedRecurrence;
+                      updated.save();
+                      ref.read(habitListProvider.notifier).refresh();
+                    } else {
+                      final newHabit = HabitModel(
+                        id: const Uuid().v4(),
+                        name: _nameController.text.trim(),
+                        description: _descController.text.trim(),
+                        recurrence: _selectedRecurrence,
+                      );
+                      ref.read(habitListProvider.notifier).addHabit(newHabit);
+                    }
                     Navigator.pop(context);
                   }
                 },
